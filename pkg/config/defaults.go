@@ -34,6 +34,9 @@ const (
 	// DefaultClusterReconciledTimeout is the default timeout for waiting for a cluster to become reconciled
 	DefaultClusterReconciledTimeout = 30 * time.Minute
 
+	// DefaultClusterDeletedTimeout is the default timeout for waiting for a cluster to be hard-deleted (404)
+	DefaultClusterDeletedTimeout = 30 * time.Minute
+
 	// DefaultNodePoolReconciledTimeout is the default timeout for waiting for a nodepool to become reconciled
 	DefaultNodePoolReconciledTimeout = 30 * time.Minute
 

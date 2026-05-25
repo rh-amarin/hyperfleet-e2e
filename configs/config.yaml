@@ -37,6 +37,10 @@ timeouts:
     # Can be overridden by: HYPERFLEET_TIMEOUTS_CLUSTER_RECONCILED
     reconciled: 5m
 
+    # Maximum time to wait for cluster hard-delete (404 response)
+    # Can be overridden by: HYPERFLEET_TIMEOUTS_CLUSTER_DELETED
+    deleted: 5m
+
   nodepool:
     # Maximum time to wait for nodepool Reconciled condition
     # Recommended: 2m
