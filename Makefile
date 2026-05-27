@@ -68,6 +68,10 @@ install: ## Build and install binary to GOPATH/bin
 run: build ## Build and run with help
 	./$(BINARY_NAME) --help
 
+.PHONY: tui
+tui: build ## Launch the interactive TUI test runner
+	./$(BINARY_NAME) tui
+
 .PHONY: clean
 clean: ## Remove build artifacts
 	rm -rf $(BIN_DIR)
@@ -89,6 +93,10 @@ test-coverage: test ## Run tests and generate HTML coverage report
 .PHONY: e2e
 e2e: build ## Run all E2E tests
 	TESTDATA_DIR=$(PWD)/testdata ./$(BINARY_NAME) test
+
+.PHONY: e2e-parallel
+e2e-parallel: ## Run E2E tests in parallel (requires ginkgo CLI). Usage: make e2e-parallel PROCS=4
+	TESTDATA_DIR=$(PWD)/testdata ginkgo --procs=$(or $(PROCS),4) ./e2e
 
 .PHONY: e2e-ci
 e2e-ci: build ## Run E2E tests with CI configuration

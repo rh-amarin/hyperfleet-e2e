@@ -56,3 +56,6 @@ pkg/api/openapi/
 
 # Downloaded from hyperfleet-api during make generate
 openapi/openapi.yaml
+
+# TUI history and execution logs
+.hyperfleet/

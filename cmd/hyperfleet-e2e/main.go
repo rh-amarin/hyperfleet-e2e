@@ -8,6 +8,7 @@ import (
 
 	"github.com/openshift-hyperfleet/hyperfleet-e2e/cmd/hyperfleet-e2e/common"
 	"github.com/openshift-hyperfleet/hyperfleet-e2e/cmd/hyperfleet-e2e/test"
+	"github.com/openshift-hyperfleet/hyperfleet-e2e/cmd/hyperfleet-e2e/tui"
 	"github.com/openshift-hyperfleet/hyperfleet-e2e/pkg/config"
 )
 
@@ -34,6 +35,7 @@ func init() {
 	// Flags are bound in subcommand run() after config loading (osde2e pattern)
 
 	root.AddCommand(test.Cmd)
+	root.AddCommand(tui.Cmd)
 }
 
 var (
