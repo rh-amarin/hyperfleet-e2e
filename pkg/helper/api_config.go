@@ -37,15 +37,15 @@ type apiValues struct {
 }
 
 type apiEntity struct {
-	Kind             string         `yaml:"kind"`
-	RequiredAdapters []string       `yaml:"required_adapters"`
-	Rest             map[string]any `yaml:",inline"`
+	Kind             string            `yaml:"kind"`
+	RequiredAdapters map[string]string `yaml:"required_adapters"`
+	Rest             map[string]any    `yaml:",inline"`
 }
 
 // UpgradeAPIRequiredAdapters upgrades the API Helm release to update the
 // required adapters for the Cluster entity. It reads the current Helm values,
 // patches the correct entity by kind (not by array index), and applies.
-func (h *Helper) UpgradeAPIRequiredAdapters(ctx context.Context, apiChartPath, namespace string, clusterAdapters []string) error {
+func (h *Helper) UpgradeAPIRequiredAdapters(ctx context.Context, apiChartPath, namespace string, clusterAdapters map[string]string) error {
 	logger.Info("upgrading API required adapters",
 		"namespace", namespace,
 		"cluster_adapters", clusterAdapters)
@@ -127,7 +127,7 @@ func (h *Helper) waitForAPIReady(ctx context.Context) error {
 // getAndPatchHelmValues reads helm values for the API release, patches the
 // entity with the given kind to set required_adapters, and returns the
 // marshaled result.
-func getAndPatchHelmValues(ctx context.Context, namespace, kind string, adapters []string) ([]byte, error) {
+func getAndPatchHelmValues(ctx context.Context, namespace, kind string, adapters map[string]string) ([]byte, error) {
 	getCmd := exec.CommandContext(ctx, "helm", "get", "values", helmReleaseName, // #nosec G204
 		"--all",
 		"--namespace", namespace,
@@ -166,7 +166,7 @@ func getAndPatchHelmValues(ctx context.Context, namespace, kind string, adapters
 
 // patchEntityRequiredAdapters finds the entity with the given kind in
 // config.entities and sets its required_adapters to the provided list.
-func patchEntityRequiredAdapters(vals *apiValues, kind string, adapters []string) error {
+func patchEntityRequiredAdapters(vals *apiValues, kind string, adapters map[string]string) error {
 	for i := range vals.Config.Entities {
 		if vals.Config.Entities[i].Kind == kind {
 			vals.Config.Entities[i].RequiredAdapters = adapters
@@ -178,7 +178,7 @@ func patchEntityRequiredAdapters(vals *apiValues, kind string, adapters []string
 
 // RestoreAPIRequiredAdaptersWithRetry restores the API required adapters with retry logic.
 // This is designed for use in DeferCleanup to ensure API config is restored even on transient failures.
-func (h *Helper) RestoreAPIRequiredAdaptersWithRetry(ctx context.Context, apiChartPath, namespace string, originalAdapters []string, maxRetries int) error {
+func (h *Helper) RestoreAPIRequiredAdaptersWithRetry(ctx context.Context, apiChartPath, namespace string, originalAdapters map[string]string, maxRetries int) error {
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		err := h.UpgradeAPIRequiredAdapters(ctx, apiChartPath, namespace, originalAdapters)
@@ -202,7 +202,11 @@ func (h *Helper) RestoreAPIRequiredAdaptersWithRetry(ctx context.Context, apiCha
 		}
 	}
 
-	adapterList := strings.Join(originalAdapters, ",")
+	names := make([]string, 0, len(originalAdapters))
+	for name := range originalAdapters {
+		names = append(names, name)
+	}
+	adapterList := strings.Join(names, ",")
 	logger.Error("CRITICAL: failed to restore API config after all retries. Manual fix required",
 		"max_retries", maxRetries,
 		"error", lastErr,
@@ -211,7 +215,7 @@ func (h *Helper) RestoreAPIRequiredAdaptersWithRetry(ctx context.Context, apiCha
 	return fmt.Errorf("failed to restore API config after %d retries: %w", maxRetries, lastErr)
 }
 
-// GetAPIRequiredClusterAdapters returns the current list of required cluster adapters from config.
-func (h *Helper) GetAPIRequiredClusterAdapters() []string {
+// GetAPIRequiredClusterAdapters returns the current map of required cluster adapters from config.
+func (h *Helper) GetAPIRequiredClusterAdapters() map[string]string {
 	return h.Cfg.Adapters.Cluster
 }

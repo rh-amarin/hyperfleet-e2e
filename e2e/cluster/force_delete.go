@@ -49,7 +49,11 @@ var _ = ginkgo.Describe("[Suite: cluster][delete] Force-Delete Cluster Stuck in 
 				// --- Simulate stuck deletion by scaling down an existing cluster adapter ---
 
 				Expect(h.Cfg.Adapters.Cluster).NotTo(BeEmpty(), "cluster adapter config is required for this test")
-				clAdapterName := h.Cfg.Adapters.Cluster[0]
+				var clAdapterName string
+				for name := range h.Cfg.Adapters.Cluster {
+					clAdapterName = name
+					break
+				}
 				// Standard adapters are deployed with release name = adapter name (e.g., "cl-namespace", not "adapter-clusters-cl-namespace")
 				clReleaseName := clAdapterName
 

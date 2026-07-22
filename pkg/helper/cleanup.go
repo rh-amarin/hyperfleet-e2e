@@ -99,40 +99,9 @@ func CleanupResources() {
 		logger.Error("failed to cleanup test resources", "error", err)
 	}
 
-	// Step 3: Sweep Pub/Sub test adapter resources
-	if c.cfg.BrokerType == "googlepubsub" {
-		if err := c.SweepPubsubTestAdapterResources(ctx); err != nil {
-			logger.Error("failed to cleanup Pub/Sub test resources", "error", err)
-		}
-	}
-
 	logger.Info("test resources cleaned up")
 }
 
-func (c *CleanupHelper) SweepPubsubTestAdapterResources(ctx context.Context) error {
-	// Get a snapshot of the adapter deployment list to avoid race conditions
-	deployments := c.adapterDeploymentList.Snapshot()
-	var errorList []string
-	for _, deployment := range deployments {
-		resourceType := deployment.ResourceType
-		adapterName := deployment.AdapterName
-		namespace := c.cfg.Namespace
-		projectID := c.cfg.GCPProjectID
-		topicID := fmt.Sprintf("%s-%s-%s-dlq", namespace, resourceType, adapterName)
-		subscriptionID := fmt.Sprintf("%s-%s-%s", namespace, resourceType, adapterName)
-		if err := DeletePubSubSubscription(ctx, subscriptionID, projectID); err != nil {
-			errorList = append(errorList, subscriptionID)
-		}
-		if err := DeletePubSubTopic(ctx, topicID, projectID); err != nil {
-			errorList = append(errorList, topicID)
-		}
-	}
-	if len(errorList) > 0 {
-		return fmt.Errorf("failed to delete some Pub/Sub resources: %s", strings.Join(errorList, ", "))
-	}
-	logger.Info("deleted Pub/Sub resources for adapters", "count", len(deployments))
-	return nil
-}
 
 // SweepLabeledResources iterates through labeled resources and deletes any orphaned resources
 func (c *CleanupHelper) SweepLabeledResources(ctx context.Context) error {

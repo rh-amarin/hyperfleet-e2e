@@ -12,7 +12,7 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 		name     string
 		vals     apiValues
 		kind     string
-		adapters []string
+		adapters map[string]string
 		wantErr  string
 	}{
 		{
@@ -23,12 +23,12 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 					Rest     map[string]any `yaml:",inline"`
 				}{
 					Entities: []apiEntity{
-						{Kind: "Cluster", RequiredAdapters: []string{"old-adapter"}},
+						{Kind: "Cluster", RequiredAdapters: map[string]string{"old-adapter": "http://old-adapter.ns.svc.cluster.local:8082"}},
 					},
 				},
 			},
 			kind:     "Cluster",
-			adapters: []string{"new-a", "new-b"},
+			adapters: map[string]string{"new-a": "http://new-a.ns.svc.cluster.local:8082", "new-b": "http://new-b.ns.svc.cluster.local:8082"},
 		},
 		{
 			name: "entity kind not found",
@@ -43,14 +43,14 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 				},
 			},
 			kind:     "Cluster",
-			adapters: []string{"a"},
+			adapters: map[string]string{"a": "http://a.ns.svc.cluster.local:8082"},
 			wantErr:  `entity with kind "Cluster" not found`,
 		},
 		{
 			name:     "empty entities",
 			vals:     apiValues{},
 			kind:     "Cluster",
-			adapters: []string{"a"},
+			adapters: map[string]string{"a": "http://a.ns.svc.cluster.local:8082"},
 			wantErr:  `entity with kind "Cluster" not found`,
 		},
 		{
@@ -61,13 +61,13 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 					Rest     map[string]any `yaml:",inline"`
 				}{
 					Entities: []apiEntity{
-						{Kind: "NodePool", RequiredAdapters: []string{"np-adapter"}},
-						{Kind: "Cluster", RequiredAdapters: []string{"old"}},
+						{Kind: "NodePool", RequiredAdapters: map[string]string{"np-adapter": "http://np-adapter.ns.svc.cluster.local:8082"}},
+						{Kind: "Cluster", RequiredAdapters: map[string]string{"old": "http://old.ns.svc.cluster.local:8082"}},
 					},
 				},
 			},
 			kind:     "Cluster",
-			adapters: []string{"new-a", "new-b"},
+			adapters: map[string]string{"new-a": "http://new-a.ns.svc.cluster.local:8082", "new-b": "http://new-b.ns.svc.cluster.local:8082"},
 		},
 	}
 
@@ -96,9 +96,9 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 					if len(e.RequiredAdapters) != len(tt.adapters) {
 						t.Fatalf("patched adapters len = %d, want %d", len(e.RequiredAdapters), len(tt.adapters))
 					}
-					for i, want := range tt.adapters {
-						if e.RequiredAdapters[i] != want {
-							t.Errorf("adapter[%d] = %v, want %v", i, e.RequiredAdapters[i], want)
+					for name, url := range tt.adapters {
+						if e.RequiredAdapters[name] != url {
+							t.Errorf("adapter[%s] = %v, want %v", name, e.RequiredAdapters[name], url)
 						}
 					}
 				}
@@ -113,8 +113,8 @@ func TestPatchEntityRequiredAdapters(t *testing.T) {
 					continue
 				}
 				if e.Kind == "NodePool" {
-					if len(e.RequiredAdapters) != 1 || e.RequiredAdapters[0] != "np-adapter" {
-						t.Errorf("non-target entity %s was modified: RequiredAdapters = %v, want [np-adapter]", e.Kind, e.RequiredAdapters)
+					if len(e.RequiredAdapters) != 1 || e.RequiredAdapters["np-adapter"] != "http://np-adapter.ns.svc.cluster.local:8082" {
+						t.Errorf("non-target entity %s was modified: RequiredAdapters = %v", e.Kind, e.RequiredAdapters)
 					}
 				}
 			}

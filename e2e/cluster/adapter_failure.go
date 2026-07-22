@@ -84,13 +84,6 @@ var _ = ginkgo.Describe("[Suite: cluster][negative] Cluster Can Reflect Adapter 
 					} else {
 						ginkgo.GinkgoWriter.Printf("Successfully uninstalled adapter: %s\n", releaseName)
 					}
-
-					if h.Cfg.BrokerType == "googlepubsub" {
-						ginkgo.By("Clean up Pub/Sub subscription and dlq topic for adapter")
-						if err := h.DeletePubSubResourcesForAdapter(ctx, adapterName, deployOpts.ResourceType); err != nil {
-							ginkgo.GinkgoWriter.Printf("Warning: failed to delete Pub/Sub subscription and dlq topic for adapter %s: %v\n", adapterName, err)
-						}
-					}
 				})
 				Expect(err).NotTo(HaveOccurred(), "failed to deploy cl-param-error adapter")
 				ginkgo.GinkgoWriter.Printf("Deployed cl-param-error adapter: release=%s\n", releaseName)

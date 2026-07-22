@@ -97,27 +97,25 @@ log:
 
 adapters:
   # Required adapters for cluster resources
-  # List of adapter names that must be present and have correct conditions
-  # when validating cluster adapter execution
+  # Map of adapter name to service URL
   #
-  # Can be overridden by (comma-separated):
+  # Can be overridden by (comma-separated name=url pairs):
   #   - HYPERFLEET_ADAPTERS_CLUSTER
   #   - API_ADAPTERS_CLUSTER
   cluster:
-    - "cl-namespace"
-    - "cl-job"
-    - "cl-deployment"
-    - "cl-maestro"
+    cl-namespace: "http://cl-namespace.hyperfleet.svc.cluster.local:8082"
+    cl-job: "http://cl-job.hyperfleet.svc.cluster.local:8082"
+    cl-deployment: "http://cl-deployment.hyperfleet.svc.cluster.local:8082"
+    cl-maestro: "http://cl-maestro.hyperfleet.svc.cluster.local:8082"
 
   # Required adapters for nodepool resources
-  # List of adapter names that must be present and have correct conditions
-  # when validating nodepool adapter execution
+  # Map of adapter name to service URL
   #
-  # Can be overridden by (comma-separated):
+  # Can be overridden by (comma-separated name=url pairs):
   #   - HYPERFLEET_ADAPTERS_NODEPOOL
   #   - API_ADAPTERS_NODEPOOL
   nodepool:
-    - "np-configmap"
+    np-configmap: "http://np-configmap.hyperfleet.svc.cluster.local:8082"
 
 # ============================================================================
 # JWT Authentication Configuration

@@ -15,9 +15,6 @@ clients:
     retry_attempts: 3
     retry_backoff: exponential
 
-  broker:
-    subscription_id: CHANGE_ME
-    topic: CHANGE_ME
 
   kubernetes:
     api_version: "v1"

@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/onsi/ginkgo/v2"
@@ -98,12 +99,6 @@ var _ = ginkgo.Describe("[Suite: cluster][negative] Cluster Can Reach Correct St
 						ginkgo.GinkgoWriter.Printf("Warning: failed to uninstall adapter %s: %v\n", releaseName, err)
 					}
 
-					if h.Cfg.BrokerType == "googlepubsub" {
-						ginkgo.By("Clean up Pub/Sub subscription and dlq topic for adapter")
-						if err := h.DeletePubSubResourcesForAdapter(ctx, adapterName, deployOpts.ResourceType); err != nil {
-							ginkgo.GinkgoWriter.Printf("Warning: failed to delete Pub/Sub subscription and dlq topic for adapter %s: %v\n", adapterName, err)
-						}
-					}
 				})
 				Expect(err).NotTo(HaveOccurred(), "failed to deploy crash-adapter")
 				ginkgo.GinkgoWriter.Printf("Deployed crash-adapter: release=%s\n", releaseName)
@@ -111,7 +106,11 @@ var _ = ginkgo.Describe("[Suite: cluster][negative] Cluster Can Reach Correct St
 				// Step 1b: Upgrade API to add crash-adapter to required adapters
 				ginkgo.By("Upgrade API to add crash-adapter to required adapters")
 				originalAdapters := h.GetAPIRequiredClusterAdapters()
-				updatedAdapters := append(append([]string{}, originalAdapters...), adapterName)
+				updatedAdapters := make(map[string]string, len(originalAdapters)+1)
+				for k, v := range originalAdapters {
+					updatedAdapters[k] = v
+				}
+				updatedAdapters[adapterName] = fmt.Sprintf("http://%s.%s.svc.cluster.local:8082", adapterName, h.Cfg.Namespace)
 
 				// Register API config restore AFTER adapter cleanup registration (LIFO → executes FIRST)
 				ginkgo.DeferCleanup(func(ctx context.Context) {

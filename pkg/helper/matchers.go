@@ -47,8 +47,9 @@ func (m *resourceConditionMatcher) NegatedFailureMessage(_ any) string {
 }
 
 // HaveAllAdaptersWithCondition matches an *AdapterStatusList where every required
-// adapter has the specified condition type and status.
-func HaveAllAdaptersWithCondition(requiredAdapters []string, condType string, status client.AdapterConditionStatus) types.GomegaMatcher {
+// adapter has the specified condition type and status. requiredAdapters is the
+// name→URL map from AdaptersConfig; only the keys (names) are used.
+func HaveAllAdaptersWithCondition(requiredAdapters map[string]string, condType string, status client.AdapterConditionStatus) types.GomegaMatcher {
 	return &allAdaptersConditionMatcher{
 		adapters: requiredAdapters,
 		condType: condType,
@@ -57,7 +58,7 @@ func HaveAllAdaptersWithCondition(requiredAdapters []string, condType string, st
 }
 
 type allAdaptersConditionMatcher struct {
-	adapters []string
+	adapters map[string]string
 	condType string
 	status   client.AdapterConditionStatus
 	missing  []string
@@ -78,7 +79,7 @@ func (m *allAdaptersConditionMatcher) Match(actual any) (bool, error) {
 		adapterMap[s.Adapter] = s
 	}
 
-	for _, name := range m.adapters {
+	for name := range m.adapters {
 		adapter, exists := adapterMap[name]
 		if !exists {
 			m.missing = append(m.missing, name+" (not found)")
@@ -101,7 +102,8 @@ func (m *allAdaptersConditionMatcher) NegatedFailureMessage(_ any) string {
 
 // HaveAllAdaptersAtGeneration matches an *AdapterStatusList where every required
 // adapter has observed the given generation with Applied=True, Available=True, Health=True.
-func HaveAllAdaptersAtGeneration(requiredAdapters []string, generation int32) types.GomegaMatcher {
+// requiredAdapters is the name→URL map from AdaptersConfig; only the keys (names) are used.
+func HaveAllAdaptersAtGeneration(requiredAdapters map[string]string, generation int32) types.GomegaMatcher {
 	return &allAdaptersGenerationMatcher{
 		adapters:   requiredAdapters,
 		generation: generation,
@@ -109,7 +111,7 @@ func HaveAllAdaptersAtGeneration(requiredAdapters []string, generation int32) ty
 }
 
 type allAdaptersGenerationMatcher struct {
-	adapters   []string
+	adapters   map[string]string
 	generation int32
 	failures   []string
 }
@@ -129,7 +131,7 @@ func (m *allAdaptersGenerationMatcher) Match(actual any) (bool, error) {
 		adapterMap[s.Adapter] = s
 	}
 
-	for _, name := range m.adapters {
+	for name := range m.adapters {
 		adapter, exists := adapterMap[name]
 		if !exists {
 			m.failures = append(m.failures, name+": not found")

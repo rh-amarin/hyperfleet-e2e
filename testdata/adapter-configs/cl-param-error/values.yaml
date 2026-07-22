@@ -10,22 +10,6 @@ adapterTaskConfig:
   files:
     task-config.yaml: cl-param-error/adapter-task-config.yaml
 
-broker:
-  type: ${BROKER_TYPE}
-  create: true
-  googlepubsub:
-    projectId: ${GCP_PROJECT_ID}
-    subscriptionId: ${NAMESPACE}-clusters-${ADAPTER_NAME}
-    topic: ${NAMESPACE}-clusters
-    deadLetterTopic: ${NAMESPACE}-clusters-dlq
-    createTopicIfMissing: ${ADAPTER_GOOGLEPUBSUB_CREATE_TOPIC_IF_MISSING}
-    createSubscriptionIfMissing: ${ADAPTER_GOOGLEPUBSUB_CREATE_SUBSCRIPTION_IF_MISSING}
-    expirationTTL: "1d"
-  rabbitmq:
-    url: ${RABBITMQ_URL}
-    queue: ${NAMESPACE}-clusters-${ADAPTER_NAME}
-    exchange: ${NAMESPACE}-clusters
-    routingKey: ${ADAPTER_NAME}
 
 image:
   registry: ${IMAGE_REGISTRY}

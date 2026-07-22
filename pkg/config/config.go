@@ -134,10 +134,10 @@ var Log = struct {
 	Output: "log.output",
 }
 
-// AdaptersConfig contains required adapters for each resource type
+// AdaptersConfig contains required adapters for each resource type as name→URL maps.
 type AdaptersConfig struct {
-	Cluster  []string `yaml:"cluster" mapstructure:"cluster"`   // Required adapters for cluster resources
-	NodePool []string `yaml:"nodepool" mapstructure:"nodepool"` // Required adapters for nodepool resources
+	Cluster  map[string]string `yaml:"cluster" mapstructure:"cluster"`   // Required adapters for cluster resources (name → service URL)
+	NodePool map[string]string `yaml:"nodepool" mapstructure:"nodepool"` // Required adapters for nodepool resources (name → service URL)
 }
 
 // AdapterDeploymentConfig contains configuration for deploying adapters via Helm in tests.
@@ -206,7 +206,6 @@ type Config struct {
 	Adapters          AdaptersConfig          `yaml:"adapters" mapstructure:"adapters"`
 	AdapterDeployment AdapterDeploymentConfig `yaml:"adapterDeployment" mapstructure:"adapterDeployment"`
 	APIDeployment     APIDeploymentConfig     `yaml:"apiDeployment" mapstructure:"apiDeployment"`
-	BrokerType        string                  `yaml:"brokerType" mapstructure:"brokerType"`
 	Identity          IdentityConfig          `yaml:"identity" mapstructure:"identity"`
 }
 
@@ -417,13 +416,6 @@ func (c *Config) applyDefaults() {
 		c.GCPProjectID = os.Getenv("GCP_PROJECT_ID")
 	}
 
-	if c.BrokerType == "" {
-		if envVal := os.Getenv("BROKER_TYPE"); envVal != "" {
-			c.BrokerType = envVal
-		} else {
-			c.BrokerType = DefaultBrokerType
-		}
-	}
 
 	// OutputDir: from config file, OUTPUT_DIR env var, or default to "output"
 	if c.OutputDir == "" {
@@ -533,11 +525,6 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("RunID %q is not a valid Kubernetes label value", c.RunID)
 		}
 	}
-	// Validate broker type
-	if c.BrokerType != "googlepubsub" && c.BrokerType != "rabbitmq" {
-		return fmt.Errorf("configuration validation failed: brokerType must be one of: googlepubsub, rabbitmq. Got: %s", c.BrokerType)
-	}
-
 	// Validate that all timeouts and polling interval are positive
 	if c.Timeouts.Cluster.Reconciled <= 0 {
 		return fmt.Errorf("configuration validation failed: timeouts.cluster.reconciled must be a positive duration, got %v", c.Timeouts.Cluster.Reconciled)

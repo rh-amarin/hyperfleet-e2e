@@ -18,10 +18,6 @@ clients:
     retry_attempts: 3
     retry_backoff: exponential
 
-  broker:
-    # These values are overridden at deploy time via env vars from Helm values
-    subscription_id: CHANGE_ME
-    topic: CHANGE_ME
 
   maestro:
     grpc_server_address: "maestro-grpc.maestro.svc.cluster.local:8090"

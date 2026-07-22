@@ -65,20 +65,19 @@ const (
 	DefaultTokenRequestAudience = "hyperfleet-api"
 )
 
-// Default required adapters for resource types
+// Default required adapters for resource types as name→URL maps.
+// These defaults are typically overridden by configs/config.yaml.
 var (
-	// DefaultClusterAdapters is the default list of required adapters for cluster resources
-	DefaultClusterAdapters = []string{
-		"clusters-namespace",
-		"clusters-job",
-		"clusters-deployment",
+	// DefaultClusterAdapters is the default map of required adapters for cluster resources
+	DefaultClusterAdapters = map[string]string{
+		"cl-namespace":  "http://cl-namespace.hyperfleet.svc.cluster.local:8082",
+		"cl-job":        "http://cl-job.hyperfleet.svc.cluster.local:8082",
+		"cl-deployment": "http://cl-deployment.hyperfleet.svc.cluster.local:8082",
+		"cl-maestro":    "http://cl-maestro.hyperfleet.svc.cluster.local:8082",
 	}
 
-	// DefaultNodePoolAdapters is the default list of required adapters for nodepool resources
-	DefaultNodePoolAdapters = []string{
-		"nodepools-configmap",
+	// DefaultNodePoolAdapters is the default map of required adapters for nodepool resources
+	DefaultNodePoolAdapters = map[string]string{
+		"np-configmap": "http://np-configmap.hyperfleet.svc.cluster.local:8082",
 	}
-
-	// DefaultBrokerType is the default broker type
-	DefaultBrokerType = "googlepubsub"
 )

@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -94,19 +95,17 @@ var _ = ginkgo.Describe("[Suite: cluster][negative] Stuck Deletion -- Adapter Un
 					if err := h.UninstallAdapter(ctx, releaseName, h.Cfg.Namespace); err != nil {
 						ginkgo.GinkgoWriter.Printf("Warning: failed to uninstall adapter %s: %v\n", releaseName, err)
 					}
-					if h.Cfg.BrokerType == "googlepubsub" {
-						ginkgo.By("Clean up Pub/Sub subscription and dlq topic for adapter")
-						if err := h.DeletePubSubResourcesForAdapter(ctx, adapterName, deployOpts.ResourceType); err != nil {
-							ginkgo.GinkgoWriter.Printf("Warning: failed to delete Pub/Sub subscription and dlq topic for adapter %s: %v\n", adapterName, err)
-						}
-					}
 				})
 				Expect(err).NotTo(HaveOccurred(), "failed to deploy stuck-adapter")
 				ginkgo.GinkgoWriter.Printf("Deployed stuck-adapter: release=%s\n", releaseName)
 
 				ginkgo.By("Upgrade API to add stuck-adapter to required adapters")
 				originalAdapters := h.GetAPIRequiredClusterAdapters()
-				updatedAdapters := append(append([]string{}, originalAdapters...), adapterName)
+				updatedAdapters := make(map[string]string, len(originalAdapters)+1)
+				for k, v := range originalAdapters {
+					updatedAdapters[k] = v
+				}
+				updatedAdapters[adapterName] = fmt.Sprintf("http://%s.%s.svc.cluster.local:8082", adapterName, h.Cfg.Namespace)
 
 				// Register API config restore AFTER adapter cleanup registration (LIFO → executes FIRST)
 				ginkgo.DeferCleanup(func(ctx context.Context) {
@@ -176,7 +175,7 @@ var _ = ginkgo.Describe("[Suite: cluster][negative] Stuck Deletion -- Adapter Un
 						adapterMap[s.Adapter] = s
 					}
 
-					for _, name := range originalAdapters {
+					for name := range originalAdapters {
 						adapter, exists := adapterMap[name]
 						g.Expect(exists).To(BeTrue(), "adapter %s should be present", name)
 						g.Expect(h.HasAdapterCondition(adapter.Conditions,
